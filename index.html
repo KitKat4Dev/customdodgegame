@@ -1,417 +1,207 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Troll News 3.0 — Jupiter Blue Edition</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-<style>
-/********************** RESET ************************/
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{font-family:Inter,sans-serif;line-height:1.6;background:#050a13;color:#eaeaea;overflow-x:hidden}
-a{text-decoration:none;color:inherit}
-
-/****************** DESIGN TOKENS *******************/
-:root{
-  --accent:#ffb300;          /* classic coin‑amber accent */
-  --accent-soft:#b47600;
-  --jupiter-accent:#009dff;  /* blue for J‑coins */
-  --jsidebar-w:310px;
-  --sidebar-w:310px;
-  --radius:10px;
-  --grad-bg:linear-gradient(180deg,#050a13 0%,#021625 100%);
-}
-
-/******************** STAR BACKGROUND ***************/
-@keyframes starTwinkle{0%,100%{opacity:.6}50%{opacity:1}}
-.starry::before{content:"";position:fixed;inset:0;background:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 fill=%22%23fff%22><circle cx=%225%22 cy=%225%22 r=%221"/></svg>') repeat center/3px;animation:starTwinkle 4s linear infinite;pointer-events:none;z-index:-1}
-
-/******************** LAYOUT (header removed) *******/
-nav{position:fixed;top:0;left:0;bottom:0;width:240px;overflow-y:auto;padding:1rem 1.1rem;background:#071523}
-nav a{display:block;padding:.45rem 0;font-weight:600;font-size:.9rem;border-bottom:1px solid #0d304d;color:#cfcfcf}
-nav a:hover{color:#fff}
-
-main{margin-left:260px;margin-top:0;margin-right:var(--sidebar-w);padding:2rem;max-width:980px;transition:margin-right .3s}
-article{margin-bottom:3rem;padding-bottom:2rem;border-bottom:1px solid #113b5e}
-article h2{font-family:"Press Start 2P",serif;font-size:1.25rem;margin-bottom:.6rem;color:var(--accent)}
-article p{color:#d4d4d4}
-
-/******************** COIN SHOP SIDEBAR *************/
-.sidebar{position:fixed;top:0;right:0;bottom:0;width:var(--sidebar-w);padding:1.6rem;background:#08233f;box-shadow:-2px 0 10px rgba(0,0,0,.5);overflow-y:auto;transition:transform .3s;color:#e2e2e2}
-.sidebar.closed{transform:translateX(100%)}
-#toggle-shop{position:absolute;top:10px;left:-34px;width:34px;height:34px;border-radius:8px 0 0 8px;background:var(--accent-soft);border:none;color:#fff;font-size:1.25rem;cursor:pointer;line-height:34px;text-align:center}
-.coins,.jcoins{font-size:1.2rem;font-weight:700;text-align:center;margin-bottom:1rem}
-.coins{color:#ffe28f}
-.jcoins{color:var(--jupiter-accent)}
-.shop-item{background:#0a2b4f;border:1px solid #15476e;border-radius:var(--radius);padding:.75rem;margin-bottom:.8rem;cursor:pointer;transition:background .2s,transform .15s}
-.shop-item:hover{background:#114168;transform:translateY(-2px)}
-.shop-item.disabled{opacity:.4;cursor:not-allowed;transform:none}
-
-/******************** ACHIEVEMENTS ******************/
-#achievement-list{margin-top:1rem;list-style:none}
-.ach-item{display:flex;justify-content:space-between;gap:.6rem;flex-wrap:wrap;padding:.55rem .5rem;margin-bottom:.45rem;background:#051c32;border:1px solid #0d3a57;border-radius:6px;font-size:.88rem}
-.ach-item.locked{opacity:.25}
-.ach-name{font-weight:600;color:#ffe28f}
-.ach-desc{font-size:.75rem;color:#bbb;margin-top:2px}
-.ach-reward{align-self:center;font-size:.8rem;color:#aaa}
-
-/******************** POPUPS & NOTIFS ***************/
-#popups-container,#notif-container{position:fixed;inset:0;pointer-events:none;z-index:200}
-.popup{position:absolute;width:320px;height:240px;background:#000;border:2px solid var(--accent);pointer-events:auto;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 18px rgba(255,179,0,.6)}
-.popup.jupiter{width:400px;height:320px;border-color:var(--jupiter-accent);box-shadow:0 0 22px rgba(0,157,255,.65)}
-.popup video{width:100%;height:auto;flex:1;object-fit:cover}
-.popup .close{background:#c00;color:#fff;text-align:center;cursor:pointer;padding:.25rem;font-weight:bold;font-size:1.25rem;user-select:none}
-.popup.fake .close{background:#222;color:#aaa}
-.popup.jupiter .close{background:var(--jupiter-accent);color:#021625;font-size:1.35rem}
-
-.notif{position:absolute;top:12px;right:12px;width:220px;background:#0e2c46;border:2px solid var(--accent);border-radius:var(--radius);padding:.6rem;font-size:.8rem;pointer-events:auto;box-shadow:0 0 12px rgba(255,179,0,.45)}
-.notif h4{font-weight:700;color:var(--accent);margin-bottom:.2rem;font-size:.9rem}
-.notif .by{font-size:.75rem;color:#ffd69b}
-
-/******************** SCREENS (TITLE / FEATURES) ****/
-.screen{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;justify-content:center;align-items:center;background:var(--grad-bg);color:#fff;transition:opacity .6s ease;pointer-events:auto}
-.screen.hidden{opacity:0;pointer-events:none}
-@keyframes planetSpin{to{transform:rotate(360deg)}}
-.screen h1{font-family:"Press Start 2P",serif;font-size:3rem;text-align:center;color:var(--accent);text-shadow:0 0 6px var(--accent);margin-bottom:.5rem}
-.glow{animation:planetSpin 20s linear infinite}
-.version{font-size:1rem;margin-top:.5rem;color:#ffe28f;cursor:pointer}
-.btn-primary{margin-top:1.5rem;background:var(--accent);color:#000;font-weight:700;font-size:.95rem;padding:.7rem 2.4rem;border:none;border-radius:50px;cursor:pointer;letter-spacing:.5px;transition:transform .15s,box-shadow .15s}
-.btn-primary:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(255,179,0,.4)}
-
-/******************** OVERLAYS (GAME OVER / PAUSE) ***/
-#game-over,#pause-overlay{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;color:#fff;opacity:0;pointer-events:none;transition:opacity .5s;font-family:"Press Start 2P",serif;z-index:600}
-#game-over.visible,#pause-overlay.show{opacity:1;pointer-events:auto}
-#game-over{background:rgba(0,0,0,.9)}
-#pause-overlay{background:rgba(0,0,0,.8);font-size:2.5rem;z-index:550}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Not so scary title</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    /* Variables */
+    :root {
+      --bg: #0a0a0a;
+      --accent: #ff4f4f;
+      --accent2: #ff9f1c;
+      --text: #ffffff;
+      --glass-bg: rgba(255, 255, 255, 0.1);
+      --shadow: rgba(0, 0, 0, 0.5);
+      --transition: 0.3s ease;
+    }
+    /* Reset */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Source Sans Pro', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    /* Animated Gradient Background */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 200%; height: 200%;
+      background: linear-gradient(45deg, #111, #222, #111, #222);
+      background-size: 400% 400%;
+      animation: bgShift 20s infinite ease-in-out;
+      z-index: -2;
+    }
+    @keyframes bgShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    /* Glitch Text */
+    .error-code {
+      font-family: 'Rubik Mono One', sans-serif;
+      font-size: 7rem;
+      position: relative;
+      color: var(--accent2);
+      margin-bottom: 1rem;
+      animation: glitch 1.5s infinite;
+    }
+    .error-code::before,
+    .error-code::after {
+      content: '303';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      clip: rect(0, 900px, 0, 0);
+    }
+    .error-code::before {
+      left: 2px;
+      text-shadow: -2px 0 var(--accent);
+      animation: glitchTop 2s infinite;
+    }
+    .error-code::after {
+      left: -2px;
+      text-shadow: 2px 0 var(--accent2);
+      animation: glitchBot 2.5s infinite;
+    }
+    @keyframes glitch {
+      0% { transform: none; }
+      20% { transform: skew(-3deg); }
+      40% { transform: skew(3deg); }
+      60% { transform: skew(-2deg); }
+      80% { transform: skew(2deg); }
+      100% { transform: none; }
+    }
+    @keyframes glitchTop {
+      0%,20%,40%,60%,80%,100% { clip: rect(0,9999px,0,0); }
+      10% { clip: rect(0,9999px,30px,0); }
+      30% { clip: rect(0,9999px,50px,0); }
+      50% { clip: rect(0,9999px,70px,0); }
+      70% { clip: rect(0,9999px,90px,0); }
+      90% { clip: rect(0,9999px,110px,0); }
+    }
+    @keyframes glitchBot {
+      0%,20%,40%,60%,80%,100% { clip: rect(0,0,0,0); }
+      10% { clip: rect(120px,9999px,150px,0); }
+      30% { clip: rect(140px,9999px,170px,0); }
+      50% { clip: rect(160px,9999px,190px,0); }
+      70% { clip: rect(180px,9999px,210px,0); }
+      90% { clip: rect(200px,9999px,230px,0); }
+    }
+    .message {
+      font-size: 1.3rem;
+      margin-bottom: 2.5rem;
+      max-width: 600px;
+      text-shadow: 0 2px 4px var(--shadow);
+      text-transform: uppercase;
+    }
+    .buttons {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn {
+      padding: 0.8rem 2.2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--text);
+      background: var(--glass-bg);
+      backdrop-filter: blur(6px);
+      border: 2px solid var(--accent);
+      border-radius: 50px;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
+      transform: skewX(-25deg);
+    }
+    .btn:hover::before {
+      animation: shine 0.8s forwards;
+    }
+    @keyframes shine {
+      to { left: 200%; }
+    }
+    .btn:hover {
+      color: var(--accent);
+      border-color: var(--accent2);
+      box-shadow: 0 0 15px var(--accent2);
+    }
+    /* Easter Egg: floating emojis */
+    #easterBtn {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      width: 40px;
+      height: 40px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.5rem;
+      z-index: 100;
+    }
+    .emoji {
+      position: absolute;
+      font-size: 1.6rem;
+      animation: floatDown linear;
+      pointer-events: none;
+    }
+  </style>
 </head>
-<body class="starry">
-<audio id="bg-music" src="THE WORLD REVOLVING.mp3" preload="auto" loop></audio>
-
-<!-- TITLE SCREEN -->
-<div id="title-screen" class="screen">
-  <h1 class="glow">Troll News</h1>
-  <span class="version" id="version-label">v 3.0 Jupiter Blue</span>
-  <button class="btn-primary" id="start-btn">Launch News</button>
-  <button class="btn-primary" id="open-features">What’s New?</button>
-</div>
-
-<!-- FEATURES -->
-<div id="features-screen" class="screen hidden">
-  <h1>What’s New in 3.0</h1>
-  <ul id="feature-list" style="max-width:720px;text-align:left;font-size:1.05rem;line-height:1.55">
-    <li>🪐 <b>J‑Coins</b> — earn by accepting Jupiter pop‑ups!</li>
-    <li>💙 Blue‑themed Jupiter windows with a slick checkmark</li>
-    <li>🏪 Brand‑new <strong>Jupiter Shop</strong> to exchange J‑Coins for cosmic upgrades</li>
-    <li>🧹 Under‑the‑hood refactor for smoother performance & fewer glitches</li>
-    <li>🎵 Adaptive soundtrack volume when game is paused</li>
-    <li>💾 Auto‑save on exit & seamless import from v2.9</li>
-  </ul>
-  <button class="btn-primary" id="back-btn">Back</button>
-</div>
-
-<!-- GAME OVER -->
-<div id="game-over"><h2 style="font-size:1.8rem;margin-bottom:1rem;color:var(--accent)">Pop‑up Overload!</h2><p>You closed your last tab under a planetary storm …</p><button class="btn-primary restart-btn" id="restart-btn">Try Again</button></div>
-<!-- PAUSE OVERLAY -->
-<div id="pause-overlay">PAUSED</div>
-
-<!-- NAVIGATION -->
-<nav>
-  <a href="#">Home</a><a href="#">World</a><a href="#">Politics</a><a href="#">Tech</a><a href="#">Sports</a><a href="#">Opinion</a><a href="#">Culture</a><a href="#">Contact</a>
-</nav>
-
-<!-- MAIN NEWS -->
-<main>
-  <article>
-    <h2>Breaking: JavaScript Toaster OS Ignites the Breakfast Market</h2>
-    <p>Developers awoke in shock today as their kitchen appliances started running <em>npm init</em>. Early adopters report flaky builds — mostly because of breadcrumbs clogging the GPIO ports. Venture capitalists have already poured $40 million into <strong>Crumb Corp</strong>, claiming “breakfast is the new cloud.”</p>
-    <p>The new firmware promises hot‑reload toast cycles and dark‑mode crust. Critics warn that the hero animation while toasting causes a 12‑second breakfast delay. CEO Mocha Java responded: “That’s still faster than cold brew.”</p>
-  </article>
-  <article>
-    <h2>CSS Strikes Back With a One‑Line Framework</h2>
-    <p>The open‑source community gasped when the enigmatic developer <code>@cascadeLord</code> released a new framework consisting of a single rule: <code>body{font-size:200%}</code>. Within hours it hit 170k GitHub stars, sparking a heated debate about <q>simplicity</q> versus <q>sanity</q>. Framework authors are scrambling to add <code>--very-big-text</code> variables to stay competitive.</p>
-    <p>User studies revealed a 300% spike in scroll‑wheel injuries. The WHO is expected to classify “Mega Font Finger” as an occupational hazard by Q3.</p>
-  </article>
-  <article>
-    <h2>Unstoppable Video Ads Demand Full Attention</h2>
-    <p>In the latest ad tech arms race, pre‑mid‑post‑rolls now come with mandatory eye‑tracking. Blink and you pay a micro‑fine. Privacy activists tried to protest but the <em>Skip</em> button kept teleporting. Experts predict humanity will simply evolve retractable eyelids by 2030.</p>
-  </article>
-</main>
-
-<!-- SHOP SIDEBAR -->
-<aside class="sidebar" id="shop-sidebar">
-  <button id="toggle-shop" title="Toggle shop">×</button>
-  <div class="coins">Coins: <span id="coin-count">0</span></div>
-  <div class="jcoins">J‑Coins: <span id="jupiter-count">0</span></div>
-  <h3 style="text-align:center;margin-bottom:.8rem">Ad‑Block Shop</h3>
-  <div id="shop">
-    <!-- Legacy + galactic items (coin currency) -->
-    <div class="shop-item" data-cost="150" data-type="slow" data-currency="coin">Spawn Rate ↓ (150)</div>
-    <div class="shop-item" data-cost="120" data-type="autoClose" data-currency="coin">Auto Close Next (120)</div>
-    <div class="shop-item" data-cost="260" data-type="bomb" data-currency="coin">Ad Bomb — Close All (260)</div>
-    <div class="shop-item" data-cost="210" data-type="freeze" data-currency="coin">Freeze Ads 10s (210)</div>
-    <div class="shop-item" data-cost="330" data-type="double" data-currency="coin">Double Coins 20s (330)</div>
-    <!-- … trimmed for brevity … -->
-    <div class="shop-item" data-cost="900" data-type="timeWarp" data-currency="coin">Time Warp (900)</div>
-    <div class="shop-item" data-cost="1000" data-type="revive" data-currency="coin">One‑Up Revive (1000)</div>
+<body>
+  <div>
+    <h1 class="error-code">303</h1>
+    <p class="message">Wrong door! The party you're looking for is happening over at that other URL!</p>
+    <div class="buttons">
+      <a href="https://websim.ai/@TheRealFiveky" class="btn">🏠 WebSim page</a>
+      <a href="http://bitgameshub.com/" class="btn">🚪 Get me there!</a>
+    </div>
   </div>
-  <h3 style="text-align:center;margin:1rem 0 .5rem">Jupiter Shop</h3>
-  <div id="jshop">
-    <div class="shop-item" data-cost="5"  data-type="jboost" data-currency="jcoin">J‑Boost — 2× Coins 10s (5J)</div>
-    <div class="shop-item" data-cost="10" data-type="jfreeze" data-currency="jcoin">J‑Freeze — Stop Popups 5s (10J)</div>
-    <div class="shop-item" data-cost="25" data-type="jrain"  data-currency="jcoin">J‑Rain — Spawn 5 Jupiters (25J)</div>
-  </div>
-  <div class="save-load" style="display:flex;gap:.5rem;justify-content:center;margin:1rem 0"><button id="save-btn">Save</button><button id="load-btn">Load</button><input type="file" id="file-input" accept="application/json" style="display:none" /></div>
-  <h3 style="text-align:center;margin-top:1rem">Achievements</h3>
-  <ul id="achievement-list"></ul>
-</aside>
 
-<div id="popups-container"></div>
-<div id="notif-container"></div>
+  <button id="easterBtn" title="Clique para animar!">🎉</button>
 
-<script>
-/***************** GAME STATE *****************/
-let coins=0,
-    jcoins=0,
-    spawnInterval=3000,
-    spawnTimer=null,
-    notifTimer=null,
-    autoCloseNext=false,
-    freezeUntil=0,
-    coinMultiplier=1,
-    multiplierTimeout=null,
-    fakeDetector=false,
-    notifMuted=false;
+  <script>
+    // Easter egg: emojis flutuantes
+    const btn = document.getElementById('easterBtn');
+    btn.addEventListener('click', () => {
+      for (let i = 0; i < 30; i++) {
+        const em = document.createElement('span');
+        em.className = 'emoji';
+        em.innerText = ['🎉','🥳','🍾','🎈'][Math.floor(Math.random() * 4)];
+        em.style.left = Math.random() * 100 + 'vw';
+        em.style.top = '-5vh';
+        const dur = 3 + Math.random() * 2;
+        em.style.animationDuration = dur + 's';
+        em.style.animationName = 'floatDown';
+        document.body.appendChild(em);
+        em.addEventListener('animationend', () => em.remove());
+      }
+    });
 
-let closedCount=0,
-    gamePaused=false,
-    pauseCount=0,
-    coinsSpent=0,
-    itemsBought=0,
-    startTime=Date.now();
-
-let tripleUsed=false,
-    nukeUsed=false,
-    fakeClicks=0,
-    notifHits=0,
-    reviveAvailable=false,
-    jupiterAccepted=0,
-    versionClicks=0,
-    konamiUnlocked=false;
-
-const container=document.getElementById("popups-container"),
-      notifC=document.getElementById("notif-container"),
-      bgMusic=document.getElementById("bg-music");
-const qs=s=>document.querySelector(s), qsa=s=>document.querySelectorAll(s);
-
-/***************** ACHIEVEMENTS (unchanged for brevity) *****************/
-const achievements=[
-   { id:"welcome",name:"Welcome!",desc:"Start reading Troll News",reward:50,condition:()=>true,unlocked:false },
-   { id:"j10",name:"Blue Thumb",desc:"Accept 10 Jupiter windows",reward:75,condition:()=>jupiterAccepted>=10,unlocked:false},
-   { id:"j50",name:"J‑Miner",desc:"Accept 50 J‑popups",reward:200,condition:()=>jupiterAccepted>=50,unlocked:false},
-   // … (other original achievements) …
-];
-function checkAchievements(){
-  achievements.forEach(a=>{if(!a.unlocked&&a.condition()){a.unlocked=true;coins+=a.reward;updateCoinDisplay();alert(`Achievement unlocked: ${a.name}! +${a.reward} coins`);}});
-  renderAchievements();
-}
-function renderAchievements(){
-  const ul=qs("#achievement-list");
-  ul.innerHTML="";
-  achievements.forEach(a=>{
-    const li=document.createElement("li");
-    li.className="ach-item "+(a.unlocked?"":"locked");
-    li.innerHTML=`<div class='ach-left'><span class='ach-name'>${a.name}</span><span class='ach-desc'>${a.desc}</span></div><span class='ach-reward'>${a.reward}c</span>`;
-    ul.appendChild(li);
-  });
-}
-
-/***************** UI *************************/
-function updateCoinDisplay(){
-  qs("#coin-count").textContent=coins;
-  qs("#jupiter-count").textContent=jcoins;
-  // Enable / disable items based on currency availability
-  qsa(".shop-item").forEach(i=>{
-    const cost=+i.dataset.cost;
-    const currency=i.dataset.currency;
-    const affordable=(currency==="jcoin"?jcoins>=cost:coins>=cost);
-    i.classList.toggle("disabled",!affordable);
-  });
-}
-
-/***************** GAME OVER *****************/
-function gameOver(){
-  clearInterval(spawnTimer);
-  clearInterval(notifTimer);
-  qs("#game-over").classList.add("visible");
-}
-
-/***************** POPUPS *****************/
-function spawnPopup(){
-  if(gamePaused||Date.now()<freezeUntil)return;
-
-  const isJupiter=Math.random()<0.12;
-  const pw=isJupiter?400:320, ph=isJupiter?320:240;
-
-  if(container.children.length>=8){
-    if(reviveAvailable){
-      reviveAvailable=false;
-      [...container.children].forEach(p=>p.remove());
-    }else{
-      return gameOver();
-    }
-  }
-
-  const popup=document.createElement("div");
-  popup.className="popup"+(isJupiter?" jupiter":"");
-  popup.style.top=Math.random()*(window.innerHeight-ph-20)+"px";
-  popup.style.left=Math.random()*(window.innerWidth-pw-20)+"px";
-
-  const vid=document.createElement("video");
-  vid.src=isJupiter?"Jupiterspot.gif":"eatablesad.mp4";
-  vid.autoplay=true;vid.loop=true;vid.muted=true;
-  popup.appendChild(vid);
-
-  const btn=document.createElement("div");
-  btn.className="close";
-  btn.textContent=isJupiter?"✔":"×";
-
-  let isFake=!isJupiter && Math.random()<0.25;
-  if(isFake){
-    popup.classList.add("fake");
-    btn.onclick=()=>{
-      fakeClicks++;coins=Math.max(0,coins-5);
-      updateCoinDisplay();checkAchievements();
-      popup.classList.remove("fake");isFake=false;
-      btn.style.background="#c00";btn.style.color="#fff";btn.textContent="×";
-    };
-  }
-
-  btn.addEventListener("click",()=>{
-    if(isFake&&!fakeDetector)return;
-
-    popup.remove();
-    if(isJupiter){
-      jcoins+=1;
-      jupiterAccepted++;
-    }else if(!isFake){
-      coins+=50*coinMultiplier;
-      closedCount++;
-    }
-    updateCoinDisplay();
-    checkAchievements();
-  });
-  popup.appendChild(btn);
-  container.appendChild(popup);
-
-  if(autoCloseNext&&!isJupiter){
-    setTimeout(()=>btn.click(),700);
-    autoCloseNext=false;
-  }
-}
-function resetSpawnTimer(){
-  clearInterval(spawnTimer);
-  spawnTimer=setInterval(spawnPopup,spawnInterval);
-}
-
-/***************** NOTIFICATIONS ***************/
-function spawnNotification(){
-  if(gamePaused||notifMuted)return;
-  const names=["MrBeast","Paper Man","Kean"],pick=names[Math.floor(Math.random()*names.length)];
-  const box=document.createElement("div");
-  box.className="notif";
-  box.style.top=Math.random()*40+"px";
-  box.style.right=Math.random()*40+"px";
-  box.innerHTML=`<h4>${pick}</h4><p>Yo! Look at me!</p><span class='by'>(click or ignore)</span>`;
-  let resolved=false;
-  function punish(){
-    if(resolved)return;resolved=true;
-    coins=Math.max(0,coins-3);notifHits++;
-    updateCoinDisplay();checkAchievements();box.remove();
-  }
-  box.addEventListener("click",punish);
-  notifC.appendChild(box);
-  setTimeout(punish,3000);
-}
-
-/***************** SHOP ACTIONS ***************/
-function handleShopClick(e){
-  const item=e.target.closest(".shop-item");
-  if(!item||item.classList.contains("disabled"))return;
-
-  const cost=+item.dataset.cost;
-  const type=item.dataset.type;
-  const currency=item.dataset.currency;
-
-  if(currency==="jcoin"){
-    if(jcoins<cost)return;jcoins-=cost;
-  }else{
-    if(coins<cost)return;coins-=cost;coinsSpent+=cost;
-  }
-  itemsBought++;updateCoinDisplay();
-
-  switch(type){
-    /* coin‑based items (same as before – trimmed) */
-    case"jboost":
-      clearTimeout(multiplierTimeout);
-      coinMultiplier=2;
-      multiplierTimeout=setTimeout(()=>coinMultiplier=1,10000);
-      break;
-    case"jfreeze":
-      freezeUntil=Date.now()+5000;
-      break;
-    case"jrain":
-      for(let i=0;i<5;i++)setTimeout(spawnPopup,i*200);
-      break;
-  }
-  checkAchievements();
-}
-qs("#shop").addEventListener("click",handleShopClick);
-qs("#jshop").addEventListener("click",handleShopClick);
-
-/***************** PAUSE (keyboard P) ***********/
-const pauseOverlay=qs("#pause-overlay");
-function togglePause(){
-  gamePaused=!gamePaused;
-  if(gamePaused){
-    clearInterval(spawnTimer);clearInterval(notifTimer);bgMusic.volume=.15;pauseOverlay.classList.add("show");
-  }else{
-    resetSpawnTimer();notifTimer=setInterval(spawnNotification,8000);bgMusic.volume=.5;pauseOverlay.classList.remove("show");
-  }
-  if(gamePaused){pauseCount++;checkAchievements();}
-}
-window.addEventListener("keydown",e=>{if(e.key.toLowerCase()==="p")togglePause();});
-
-/***************** SAVE & LOAD *****************/
-function getSaveObj(){
-  return{coins,jcoins,spawnInterval,autoCloseNext,freezeUntil,coinMultiplier,closedCount,pauseCount,coinsSpent,itemsBought,tripleUsed,nukeUsed,fakeClicks,notifHits,reviveAvailable,jupiterAccepted,ach:achievements.map(a=>a.unlocked)};
-}
-function loadSaveObj(o){
-  coins=o.coins||0;jcoins=o.jcoins||0;spawnInterval=o.spawnInterval||3000;autoCloseNext=o.autoCloseNext||false;freezeUntil=o.freezeUntil||0;coinMultiplier=o.coinMultiplier||1;closedCount=o.closedCount||0;pauseCount=o.pauseCount||0;coinsSpent=o.coinsSpent||0;itemsBought=o.itemsBought||0;tripleUsed=o.tripleUsed||false;nukeUsed=o.nukeUsed||false;fakeClicks=o.fakeClicks||0;notifHits=o.notifHits||0;reviveAvailable=o.reviveAvailable||false;jupiterAccepted=o.jupiterAccepted||0;Array.isArray(o.ach)&&o.ach.forEach((u,i)=>{if(achievements[i])achievements[i].unlocked=u;});updateCoinDisplay();renderAchievements();checkAchievements();resetSpawnTimer();}
-qs("#save-btn").addEventListener("click",()=>{const blob=new Blob([JSON.stringify(getSaveObj())],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="trollnews_save.json";a.click();URL.revokeObjectURL(a.href);});
-qs("#load-btn").addEventListener("click",()=>qs("#file-input").click());
-qs("#file-input").addEventListener("change",e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{try{loadSaveObj(JSON.parse(ev.target.result));}catch{}};reader.readAsText(file);});
-
-/***************** TITLE & FEATURES NAV *********/
-qs("#start-btn").addEventListener("click",()=>{qs("#title-screen").classList.add("hidden");setTimeout(()=>{resetSpawnTimer();notifTimer=setInterval(spawnNotification,8000);checkAchievements();bgMusic.volume=.5;bgMusic.play().catch(()=>{});},600);});
-qs("#open-features").addEventListener("click",()=>{qs("#title-screen").classList.add("hidden");qs("#features-screen").classList.remove("hidden");});
-qs("#back-btn").addEventListener("click",()=>{qs("#features-screen").classList.add("hidden");qs("#title-screen").classList.remove("hidden");});
-
-/***************** RESTART *****************/
-qs("#restart-btn").addEventListener("click",()=>location.reload());
-
-/***************** SHOP TOGGLE ***************/
-const sidebar=qs("#shop-sidebar"),toggleBtn=qs("#toggle-shop");
-toggleBtn.addEventListener("click",()=>{const isClosed=sidebar.classList.toggle("closed");toggleBtn.textContent=isClosed?"«":"×";});
-
-/***************** EASTER EGGS ***************/
-qs("#version-label").addEventListener("click",()=>{versionClicks++;checkAchievements();});
-const konami=["arrowup","arrowup","arrowdown","arrowdown","arrowleft","arrowright","arrowleft","arrowright","b","a"];let kPos=0;
-window.addEventListener("keydown",e=>{if(e.key.toLowerCase()===konami[kPos]){kPos++;if(kPos===konami.length){konamiUnlocked=true;kPos=0;checkAchievements();alert("Hyper‑Troll‑Core engaged!");}}else{kPos=0;}});
-
-/***************** INIT *****************/
-updateCoinDisplay();renderAchievements();setTimeout(()=>console.log("%cWelcome to Troll News v3.0 Jupiter Blue!","color:#009dff;font-size:16px;font-family:monospace"),300);
-</script>
+    // floatDown keyframes injection
+    const style = document.createElement('style');
+    style.textContent = `@keyframes floatDown {0%{transform: translateY(0);}100%{transform: translateY(110vh); opacity: 0;}}`;
+    document.head.appendChild(style);
+  </script>
 </body>
 </html>
